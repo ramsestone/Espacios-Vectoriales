@@ -230,12 +230,28 @@ class EspacioEuclidiano(EspacioVectorial):
 
     def ingresar_vectores(self) -> List[np.ndarray]:
         """Solicita n y luego los vectores de ℝⁿ."""
-        n_str = questionary.text(
+        
+        # """Opción para usar base canónica."""
+        choice = questionary.select(
+            "Selecciona una opción: ",
+            choices= [
+                "Usar base canónica.",
+                "Ingresar vectores manualmente."
+            ],
+            style=estilo_menu
+        ).ask()
+
+        if choice == "Usar base canónica.":
+            base_canonica = [np.array([1,0,0], dtype=float), np.array([0,1,0], dtype=float), np.array([0,0,1], dtype=float)]
+            return base_canonica
+
+
+        dimension = questionary.text(
             "¿Cuál es la dimensión n del espacio ℝⁿ?",
             validate=lambda t: t.isdigit() and int(t) > 0 or "Ingrese un entero positivo.",
             style=estilo_menu
         ).ask()
-        n = int(n_str)
+        n = int(dimension)
 
         cant_str = questionary.text(
             "¿Cuántos vectores desea ingresar en el conjunto B?",
@@ -300,6 +316,38 @@ class EspacioMatrices(EspacioVectorial):
 
     def ingresar_vectores(self) -> List[np.ndarray]:
         """Solicita las dimensiones n×m y las matrices."""
+
+        # """Opción para usar base canónica."""
+        choice = questionary.select(
+            "Selecciona una opción: ",
+            choices= [
+                "Usar base canónica.",
+                "Ingresar matrices manualmente."
+            ],
+            style=estilo_menu
+        ).ask()
+
+        if choice == "Usar base canónica.":
+            matriz_1 = np.array(
+                [[1,0],
+                [0,0]], dtype=float
+            )
+            matriz_2 = np.array(
+                [[0,1],
+                [0,0]], dtype=float
+            )
+            matriz_3 = np.array(
+                [[0,0],
+                [1,0]], dtype=float
+            )
+            matriz_4 = np.array(
+                [[0,0],
+                [0,1]], dtype=float
+            )
+
+            base_canonica = [matriz_1, matriz_2, matriz_3, matriz_4]
+            return base_canonica
+        
         n_str = questionary.text(
             "Número de filas (n):",
             validate=lambda t: t.isdigit() and int(t) > 0 or "Entero positivo.",
@@ -400,6 +448,21 @@ class EspacioPolinomios(EspacioVectorial):
 
     def ingresar_vectores(self) -> List[np.ndarray]:
         """Solicita el grado máximo y los coeficientes de cada polinomio."""
+        
+        # """Opción para usar base canónica."""
+        choice = questionary.select(
+            "Selecciona una opción: ",
+            choices= [
+                "Usar base canónica.",
+                "Ingresar polinomios manualmente."
+            ],
+            style=estilo_menu
+        ).ask()
+
+        if choice == "Usar base canónica.":
+            base_canonica = [np.array([1,0,0], dtype=float), np.array([0,1,0], dtype=float), np.array([0,0,1], dtype=float)]
+            return base_canonica
+        
         n_str = questionary.text(
             "¿Cuál es el grado máximo n de los polinomios? (P_n tiene dimensión n+1)",
             validate=lambda t: t.isdigit() and int(t) >= 0 or "Entero no negativo.",
@@ -494,6 +557,23 @@ class EspacioFunciones(EspacioVectorial):
 
     def ingresar_vectores(self) -> List[Any]:
         """Permite al usuario seleccionar funciones del catálogo."""
+
+        # """Opción para usar base canónica."""
+        choice = questionary.select(
+            "Selecciona una opción: ",
+            choices= [
+                "Usar base canónica.",
+                "Ingresar vectores manualmente."
+            ],
+            style=estilo_menu
+        ).ask()
+
+        if choice == "Usar base canónica.":
+            sin = FUNCIONES_PREDEFINIDAS[4][1]
+            cos = FUNCIONES_PREDEFINIDAS[5][1]
+            base_canonica = [sin, cos]
+            return base_canonica
+        
         cant_str = questionary.text(
             "¿Cuántas funciones desea ingresar en el conjunto B?",
             validate=lambda t: t.isdigit() and int(t) > 0 or "Entero positivo.",
@@ -536,7 +616,7 @@ class AnalizadorEspacioVectorial:
 
         print(f"\n{separador}")
         print(f"    {self.espacio.nombre_espacio()}")
-        print(f"  Conjunto B con {len(conjunto_b)} vector(es)")
+        print(f"    Conjunto B con {len(conjunto_b)} vector(es)")
         print(separador)
 
         # ── Mostrar vectores ──────────────────────────────────────────────
@@ -638,17 +718,17 @@ class AnalizadorEspacioVectorial:
 # ===========================================================================
 
 MAPA_ESPACIOS = {
-    "Matrices  (M_{n×m})        — Producto interno de Frobenius": EspacioMatrices,
-    "Espacio Euclídeo  (ℝⁿ)     — Producto punto estándar":       EspacioEuclidiano,
+    "Matrices  (M_{n×m})         — Producto interno de Frobenius": EspacioMatrices,
+    "Espacio Euclídeo  (ℝⁿ)      — Producto punto estándar":       EspacioEuclidiano,
     "Polinomios  (P_n)           — Producto interno integral":     EspacioPolinomios,
     "Funciones  (F en [-1,1])    — Producto interno integral":     EspacioFunciones,
 }
 
 BANNER = r"""
-╔══════════════════════════════════════════════════════════╗
-║         ANÁLISIS DE ESPACIOS VECTORIALES  v1.0           ║
+╔═══════════════════════════════════════════════════════════════╗
+║         ANÁLISIS DE ESPACIOS VECTORIALES  v1.0                ║
 ║  Independencia · Base · Norma · Ortogonalidad · Gram-Schmidt  ║
-╚══════════════════════════════════════════════════════════╝
+╚═══════════════════════════════════════════════════════════════╝
 """
 
 
@@ -659,15 +739,15 @@ def ejecutar_aplicacion() -> None:
     continuar = True
     while continuar:
         # ── Selección del espacio vectorial ───────────────────────────────
-        opciones_espacio = list(MAPA_ESPACIOS.keys()) + ["❌  Salir"]
+        opciones_espacio = list(MAPA_ESPACIOS.keys()) + ["[X]  Salir"]
         eleccion = questionary.select(
             "Seleccione el tipo de Espacio Vectorial:",
             choices=opciones_espacio,
             style=estilo_menu
         ).ask()
 
-        if eleccion is None or eleccion.startswith("❌"):
-            print("\n  Hasta luego. \n")
+        if eleccion is None or eleccion.startswith("[X]"):
+            print("\n  Saliendo. \n")
             break
 
         # ── Instanciar el espacio elegido ─────────────────────────────────
